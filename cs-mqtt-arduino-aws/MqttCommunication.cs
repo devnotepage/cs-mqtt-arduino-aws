@@ -3,7 +3,7 @@
     /// <summary>
     /// MQTT通信
     /// </summary>
-    internal class MqttCommunication
+    internal class MqttCommunication : IDisposable
     {
         private Action<string> _onReceived;
         internal MqttCommunication(string port, int speed, Action<string> onReceived)
@@ -23,6 +23,9 @@
         private string Receive()
         {
             return string.Empty;
+        }
+        public void Dispose()
+        {
         }
     }
 }

@@ -10,16 +10,15 @@
         {
             Console.WriteLine("Start.");
             // シリアル通信(WindowsPC<->Arduino)
-            var serial = new SerialCommunication("COM4", 9600, OnSerialReceived);
+            using var serial = new SerialCommunication("COM4", 9600, OnSerialReceived);
             // MQTT通信(WindowsPC<->AWS)
-
 
 
 
             // コマンド入力待機
             for (; ; )
             {
-                var cmd = Console.ReadLine();
+                var cmd = Console.ReadLine() ?? string.Empty;
                 if (cmd == "exit") { break; }
                 serial.Send(cmd);
             }

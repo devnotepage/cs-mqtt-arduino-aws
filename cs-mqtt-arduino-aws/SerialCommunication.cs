@@ -5,7 +5,7 @@ namespace cs_mqtt_arduino_aws
     /// <summary>
     /// シリアル通信
     /// </summary>
-    internal class SerialCommunication
+    internal class SerialCommunication : IDisposable
     {
         /// <summary>
         /// シリアルポート
@@ -49,6 +49,13 @@ namespace cs_mqtt_arduino_aws
         private string Receive()
         {
             return _serialPort.ReadLine();
+        }
+        /// <summary>
+        /// 破棄
+        /// </summary>
+        public void Dispose()
+        {
+            _serialPort.Dispose();
         }
     }
 }
