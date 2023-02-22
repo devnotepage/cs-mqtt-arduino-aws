@@ -2,11 +2,20 @@
 {
     internal class Program
     {
+        /// <summary>
+        /// アプリケーション起動時に最初に実行されます。
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             Console.WriteLine("Start.");
-            // シリアル通信開始
-            var serial = new SerialCommunication("COM4", 9600, OnReceived);
+            // シリアル通信(WindowsPC<->Arduino)
+            var serial = new SerialCommunication("COM4", 9600, OnSerialReceived);
+            // MQTT通信(WindowsPC<->AWS)
+
+
+
+
             // コマンド入力待機
             for (; ; )
             {
@@ -16,7 +25,11 @@
             }
             Console.WriteLine("End.");
         }
-        private static void OnReceived(string data)
+        /// <summary>
+        /// シリアル通信でデータ受信に実行されます。
+        /// </summary>
+        /// <param name="data"></param>
+        private static void OnSerialReceived(string data)
         {
             Console.WriteLine($"OnReceived[{data}]");
         }
