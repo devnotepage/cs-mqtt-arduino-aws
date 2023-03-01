@@ -12,16 +12,19 @@
             // シリアル通信(WindowsPC<->Arduino)
             using var serial = new SerialCommunication("COM4", 9600, OnSerialReceived);
             // MQTT通信(WindowsPC<->AWS)
-            using var mqtt = new MqttCommunication("a2nxeibdtznjn8-ats.iot.us-east-1.amazonaws.com", "sdk/test/python", OnMqttReceived);
-            //mqtt.Send("Start.");
+            using var mqtt = new MqttCommunication("https://a2nxeibdtznjn8-ats.iot.us-east-1.amazonaws.com", "test/cs", OnMqttReceived);
+            serial.Send("Start.");
+            mqtt.Send("Start.");
             // コマンド入力待機
             for (; ; )
             {
                 var cmd = Console.ReadLine() ?? string.Empty;
                 if (cmd == "exit") { break; }
                 serial.Send(cmd);
+                mqtt.Send(cmd);
             }
-            //mqtt.Send("End.");
+            mqtt.Send("End.");
+            serial.Send("End.");
             Console.WriteLine("End.");
         }
         /// <summary>

@@ -1,8 +1,8 @@
-﻿using MQTTnet;
-using MQTTnet.Client;
-using MQTTnet.Packets;
-using MQTTnet.Protocol;
-using MQTTnet.Server;
+﻿using Amazon;
+using Amazon.IotData;
+using Amazon.IotData.Model;
+using Amazon.Runtime;
+using System.Text;
 
 namespace cs_mqtt_arduino_aws
 {
@@ -11,51 +11,42 @@ namespace cs_mqtt_arduino_aws
     /// </summary>
     internal class MqttCommunication : IDisposable
     {
-        private MqttFactory _mqttFactory;
-        private IMqttClient _mqttClient;
-        private MqttClientOptions _mqttClientOptions;
-        private MqttClientSubscribeOptions _mqttSubscribeOptions;
+        private AmazonIotDataClient _client;
         private string _topic;
         private Action<string> _onReceived;
         internal MqttCommunication(string server, string topic, Action<string> onReceived)
         {
+            string awsAccessKeyId = string.Empty;
+            string awsSecretAccessKey = string.Empty;
+            string fileString = File.ReadAllText(@"D:/D/AWS/AccessKeys1.csv");
+            foreach (var line in fileString.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n'))
+            {
+                foreach (var (field, index) in line.Split(',').Select((field, index) => (field, index)))
+                {
+                    if (string.IsNullOrWhiteSpace(field)) { continue; }
+                    if (index == 0) { awsAccessKeyId = field; }
+                    if (index == 1) { awsSecretAccessKey = field; }
+                }
+            }
+            var config = new AmazonIotDataConfig();
+            config.RegionEndpoint = RegionEndpoint.USEast1;
+            config.ServiceURL = server;
+            _client = new AmazonIotDataClient(awsAccessKeyId, awsSecretAccessKey, config);
             _topic = topic;
             _onReceived = onReceived;
-            _mqttFactory = new MqttFactory();
-            _mqttClient = _mqttFactory.CreateMqttClient();
-            _mqttClient.ApplicationMessageReceivedAsync += e =>
-            {
-                Console.WriteLine("Received application message.");
-                Console.WriteLine(e.ToString());
-                _onReceived(e.ToString());
-                return Task.CompletedTask;
-            };
-            _mqttClientOptions = new MqttClientOptionsBuilder()
-                .WithTcpServer(server)
-                .Build();
-            _mqttClient.ConnectAsync(_mqttClientOptions, CancellationToken.None);
-            _mqttSubscribeOptions = _mqttFactory.CreateSubscribeOptionsBuilder()
-                .WithTopicFilter(
-                    f =>
-                    {
-                        f.WithTopic(_topic);
-                    })
-                .Build();
-            _mqttClient.SubscribeAsync(_mqttSubscribeOptions, CancellationToken.None);
         }
         public void Send(string data)
         {
-            var applicationMessage = new MqttApplicationMessageBuilder()
-                .WithTopic(_topic)
-                .WithPayload(data)
-                .Build();
-            _mqttClient.PublishAsync(applicationMessage, CancellationToken.None);
-            Console.WriteLine("MQTT application message is published.");
+            var request = new PublishRequest();
+            request.Topic = _topic;
+            request.Qos = 1;
+            request.Payload = new MemoryStream(Encoding.UTF8.GetBytes(data));
+            var response1 = _client.PublishAsync(request).Result;
+            Console.WriteLine(response1.ToString());
         }
         public void Dispose()
         {
-            _mqttClient.DisconnectAsync();
-            _mqttClient.Dispose();
+            _client.Dispose();
         }
     }
 }
