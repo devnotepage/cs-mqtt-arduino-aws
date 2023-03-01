@@ -1,4 +1,5 @@
 ﻿using Amazon;
+using Amazon.IoT;
 using Amazon.IotData;
 using Amazon.IotData.Model;
 using Amazon.Runtime;
@@ -42,7 +43,9 @@ namespace cs_mqtt_arduino_aws
             request.Qos = 1;
             request.Payload = new MemoryStream(Encoding.UTF8.GetBytes(data));
             var response1 = _client.PublishAsync(request).Result;
-            Console.WriteLine(response1.ToString());
+            Console.WriteLine("HttpStatusCode:" + response1.HttpStatusCode);
+            Console.WriteLine("ContentLength:" + response1.ContentLength);
+            Console.WriteLine("RequestId:" + response1.ResponseMetadata.RequestId);
         }
         public void Dispose()
         {
